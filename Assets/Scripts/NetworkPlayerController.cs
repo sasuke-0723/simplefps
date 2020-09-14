@@ -126,7 +126,7 @@ public class NetworkPlayerController : MonoBehaviour
             m_moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
             m_moveDirection = transform.TransformDirection(m_moveDirection);
 
-            if (Input.GetButtonDown("Jump"))
+            if (Input.GetButton("Jump"))
             {
                 m_moveDirection.y = jumpSpeed;
             }
