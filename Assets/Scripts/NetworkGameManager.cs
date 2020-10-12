@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 // Photon 用の名前空間を参照する
 using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class NetworkGameManager : MonoBehaviourPunCallbacks // Photon Realtime 用のクラスを継承する
+public class NetworkGameManager : MonoBehaviourPunCallbacks, IPunObservable // Photon Realtime 用のクラスを継承する
 {
     /// <summary>プレイヤーのプレハブ</summary>
     [SerializeField] string m_playerPrefabName = "Prefab";
@@ -17,10 +18,52 @@ public class NetworkGameManager : MonoBehaviourPunCallbacks // Photon Realtime �
     /// <summary>自分が出現した場所を記憶しておく変数</summary>
     Transform m_mySpawnPoint;
 
+    //
+    public static NetworkGameManager instance { get; private set; }
+    /// <summary>制限時間</summary>
+    float timeLimit = 180.0f;
+    int allPlayer = 0;
+    int actorNumOfTheWiiner = 5;
+    [SerializeField] Text timeText;
+    new private PhotonView photonView;
+    private void Update()
+    {
+        timeText.text = timeLimit.ToString();
+        if (allPlayer >= 2)
+        {
+            timeLimit -= Time.deltaTime;
+        }
+    }
+    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            //データの送信
+            stream.SendNext(timeLimit);
+            stream.SendNext(allPlayer);
+        }
+        else
+        {
+            //データの受信
+            timeLimit = (float)stream.ReceiveNext();
+            allPlayer = (int)stream.ReceiveNext();
+        }
+    }
+    public void GetActorNumberOfTheWinner(int actorNumber)
+    {
+        actorNumOfTheWiiner = actorNumber;
+    }
+    //
+    [PunRPC]
+    public void GetAllPlayerNumber(int allPlayerNumber)
+    {
+        allPlayer = allPlayerNumber;
+    }
     private void Awake()
     {
         // シーンの自動同期は無効にする
         PhotonNetwork.AutomaticallySyncScene = false;
+        photonView = GetComponent<PhotonView>();
     }
 
     private void Start()
@@ -104,9 +147,12 @@ public class NetworkGameManager : MonoBehaviourPunCallbacks // Photon Realtime �
             m_mySpawnPoint = m_spawnPoints[actorNumber - 1];
         }
         GameObject player = PhotonNetwork.Instantiate(m_playerPrefabName, m_mySpawnPoint.position, m_mySpawnPoint.rotation);   // プレイヤーを生成し、他のクライアントと同期する
-
         // 自分だけ入力を有効にする
         //player.GetComponent<NetworkPlayerController>().Initialize();
+        if (actorNumber == 2)
+        {
+            photonView.RPC("GetAllPlayerNumber", RpcTarget.MasterClient, actorNumber);
+        }
     }
 
     #region MonoBehaviourPunCallbacks のコールバック関数
@@ -253,6 +299,8 @@ public class NetworkGameManager : MonoBehaviourPunCallbacks // Photon Realtime �
     {
         Debug.Log("OnCustomAuthenticationFailed");
     }
+
+    
 
     #endregion
 }
