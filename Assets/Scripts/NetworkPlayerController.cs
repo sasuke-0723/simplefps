@@ -2,6 +2,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
+using TMPro;
+using System.Security.Cryptography;
 
 /// <summary>
 /// プレイヤーの基本操作を処理するコンポーネント
@@ -45,10 +47,17 @@ public class NetworkPlayerController : MonoBehaviour
     [Range(50, 500)]
     public int sensitivity = 200;
 
+    public GameObject bullet = null;
+    public GameObject flag = null;
+    private bool haveFlag = false;
+    private Vector3 playerPos;
+
     private void Start()
     {
         m_control = GetComponent<CharacterController>();
         m_photonView = GetComponent<PhotonView>();
+
+        playerPos = GetComponent<Transform>().position;
 
         // 自分が生成したプレイヤーのカメラだけを有効にする
         if (m_photonView.IsMine)
@@ -114,6 +123,13 @@ public class NetworkPlayerController : MonoBehaviour
             m_target = null;
             m_crosshair.color = m_noTarget;
         }
+
+		if (Input.GetKeyDown(KeyCode.LeftShift))
+		{
+            playerPos = transform.position;
+            Quaternion direction = new Quaternion(transform.rotation.x ,transform.rotation.y - 180, transform.rotation.z, transform.rotation.w);
+            Instantiate(bullet, playerPos, direction);
+		}
     }
 
     /// <summary>
@@ -126,7 +142,7 @@ public class NetworkPlayerController : MonoBehaviour
             m_moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
             m_moveDirection = transform.TransformDirection(m_moveDirection);
 
-            if (Input.GetButton("Jump"))
+            if (Input.GetButtonDown("Jump"))
             {
                 m_moveDirection.y = jumpSpeed;
             }
@@ -149,4 +165,12 @@ public class NetworkPlayerController : MonoBehaviour
             }
         }
     }
+
+	private void OnTriggerEnter(Collider other)
+	{
+		if (other.CompareTag("Flag"))
+		{
+            haveFlag = true;
+		}
+	}
 }
