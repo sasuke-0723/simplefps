@@ -6,6 +6,7 @@ public class bullet : MonoBehaviour
 {
     [SerializeField] GameObject differentSpace;
 
+    public int plaerActorNum;
     [SerializeField] float speed = 1;
 
     float angleDirY;
