@@ -7,7 +7,7 @@ TagManager:
   - Bullet
   - DifferentSpace
   - Flag
-
+  - "\u5F8C\u3067\u6D88\u3059\u3068\u601D\u3046\u3088"
   layers:
   - Default
   - TransparentFX
@@ -17,8 +17,8 @@ TagManager:
   - UI
   - 
   - 
-  - PostProcessing
-  - Shootable
+  - 
+  - 
   - 
   - 
   - 
